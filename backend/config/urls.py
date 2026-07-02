@@ -16,20 +16,54 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-import rest_framework_simplejwt.views
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView
+)
+
+from rest_framework import permissions
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
+
+schema_view = get_schema_view(
+    openapi.Info(
+        title="Blog API",
+        default_version='v1',
+        description="API documentation for Blog Application",
+    ),
+    public=True,
+    permission_classes=[permissions.AllowAny],
+)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+
+    # Blog app URLs
     path('api/', include('blog.urls')),
+
+    # JWT URLs
     path(
         'api/token/',
-        rest_framework_simplejwt.views.TokenObtainPairView.as_view(),
+        TokenObtainPairView.as_view(),
         name='token_obtain_pair'
     ),
 
     path(
         'api/token/refresh/',
-        rest_framework_simplejwt.views.TokenRefreshView.as_view(),
+        TokenRefreshView.as_view(),
         name='token_refresh'
+    ),
+
+    # Swagger URLs
+    path(
+        'swagger/',
+        schema_view.with_ui('swagger', cache_timeout=0),
+        name='swagger-ui'
+    ),
+
+    path(
+        'redoc/',
+        schema_view.with_ui('redoc', cache_timeout=0),
+        name='redoc'
     ),
 ]

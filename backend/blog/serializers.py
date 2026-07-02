@@ -1,40 +1,47 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Category, BlogPost, Comment, Like, Feedback
+from .models import Category, BlogPost
 
-class CategorySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Category
-        fields = '__all__'
+class CategorySerializer(serializers.Serializer):
+    id = serializers.IntegerField(read_only=True)
+    name = serializers.CharField(max_length=100)
+    description = serializers.CharField()
+    created_at = serializers.DateTimeField(read_only=True)
 
-class BlogPostSerializer(serializers.ModelSerializer):
+    def create(self, validated_data):
+        return Category.objects.create(**validated_data)
+    
+    def update(self, instance, validated_data):
+        instance.name = validated_data.get('name', instance.name)
+        instance.description = validated_data.get('description', instance.description)
+        instance.save()
+        return instance
+
+class BlogPostSerializer(serializers.Serializer):
+    id = serializers.IntegerField(read_only=True)
+    title = serializers.CharField(max_length=275)
+    slug = serializers.SlugField()
+    content = serializers.CharField()
     author = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
     category = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all())
+    status = serializers.ChoiceField(choices=BlogPost.STATUS_CHOICES)
+    created_at = serializers.DateTimeField(read_only=True)
+    updated_at = serializers.DateTimeField(read_only=True)
 
-    class Meta:
-        model = BlogPost
-        fields = '__all__'
+    def create(self, validated_data):
+        return BlogPost.objects.create(**validated_data)
+    
+    def update(self, instance, validated_data):
+        instance.title = validated_data.get('title', instance.title)
+        instance.slug = validated_data.get('slug', instance.slug)
+        instance.content = validated_data.get('content', instance.content)
+        instance.author = validated_data.get('author', instance.author)
+        instance.category = validated_data.get('category', instance.category)
+        instance.status = validated_data.get('status', instance.status)
+        instance.save()
+        return instance
+    
 
-class CommentSerializer(serializers.ModelSerializer):
-    user = serializers.StringRelatedField(read_only=True)
-    post = serializers.StringRelatedField()
-
-    class Meta:
-        model = Comment
-        fields = '__all__'
-
-class LikeSerializer(serializers.ModelSerializer):
-    user = serializers.StringRelatedField(read_only=True)
-    post = serializers.StringRelatedField()
-
-    class Meta:
-        model = Like
-        fields = '__all__'
-
-class FeedbackSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Feedback
-        fields = '__all__'
 
 class LoginSerializer(serializers.Serializer):
     username = serializers.CharField()
