@@ -22,8 +22,12 @@ from rest_framework_simplejwt.views import (
 )
 
 from rest_framework import permissions
-from drf_yasg.views import get_schema_view
-from drf_yasg import openapi
+
+try:
+    from drf_yasg.views import get_schema_view
+    from drf_yasg import openapi
+except ImportError:  # Swagger docs are optional
+    get_schema_view = None
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -33,7 +37,7 @@ schema_view = get_schema_view(
     ),
     public=True,
     permission_classes=[permissions.AllowAny],
-)
+) if get_schema_view else None
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -53,17 +57,20 @@ urlpatterns = [
         TokenRefreshView.as_view(),
         name='token_refresh'
     ),
-
-    # Swagger URLs
-    path(
-        'swagger/',
-        schema_view.with_ui('swagger', cache_timeout=0),
-        name='swagger-ui'
-    ),
-
-    path(
-        'redoc/',
-        schema_view.with_ui('redoc', cache_timeout=0),
-        name='redoc'
-    ),
 ]
+
+if schema_view:
+    urlpatterns += [
+        # Swagger URLs
+        path(
+            'swagger/',
+            schema_view.with_ui('swagger', cache_timeout=0),
+            name='swagger-ui'
+        ),
+
+        path(
+            'redoc/',
+            schema_view.with_ui('redoc', cache_timeout=0),
+            name='redoc'
+        ),
+    ]

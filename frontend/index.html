@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>THE WITHIN | A more considered way to care for yourself</title>
+  <meta name="description" content="THE WITHIN is a fictional wellness practice and editorial journal exploring mind, body, nourishment and everyday ritual.">
+  <meta name="api-base" content="http://127.0.0.1:8000/api">
+  <meta name="theme-color" content="#F4EEE4">
+  <meta property="og:site_name" content="THE WITHIN">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="THE WITHIN">
+  <meta property="og:description" content="A more considered way to care for yourself.">
+  <link rel="icon" href="/img/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..500;1,9..144,300..400&family=Inter:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="site-header" id="top">
+    <div class="wrap bar">
+      <a class="brand" href="/" data-link aria-label="THE WITHIN, home">THE WITHIN</a>
+      <nav class="primary" aria-label="Primary">
+        <a href="/category/mind" data-link>Mind</a>
+        <a href="/category/body" data-link>Body</a>
+        <a href="/category/nourish" data-link>Nourish</a>
+        <a href="/category/ritual" data-link>Ritual</a>
+        <a href="/journal" data-link>Journal</a>
+      </nav>
+      <nav class="secondary" aria-label="Secondary">
+        <a href="/about" data-link>About</a>
+        <a href="/practitioners" data-link>Practitioners</a>
+        <a href="/journal?focus=search" data-link>Search</a>
+        <span id="account-slot"></span>
+      </nav>
+      <a class="btn btn-solid cta" href="/contact" data-link>Work with us</a>
+      <button class="menu-btn" id="menu-btn" aria-expanded="false" aria-controls="mobile-menu"><span class="sr">Menu</span><span class="bars" aria-hidden="true"></span></button>
+    </div>
+  </header>
+  <div class="mobile-menu" id="mobile-menu" hidden>
+    <nav aria-label="Mobile">
+      <a href="/category/mind" data-link>Mind</a>
+      <a href="/category/body" data-link>Body</a>
+      <a href="/category/nourish" data-link>Nourish</a>
+      <a href="/category/ritual" data-link>Ritual</a>
+      <a href="/journal" data-link>Journal</a>
+      <div class="mm-sub">
+        <a href="/about" data-link>About</a>
+        <a href="/practitioners" data-link>Practitioners</a>
+        <a href="/journal?focus=search" data-link>Search</a>
+        <span id="account-slot-mobile"></span>
+      </div>
+      <a class="btn btn-solid" href="/contact" data-link>Work with us</a>
+    </nav>
+  </div>
+  <main id="main" tabindex="-1"></main>
+  <footer class="site-footer">
+    <div class="wrap">
+      <div class="foot-top">
+        <div>
+          <p class="foot-brand">THE WITHIN</p>
+          <p class="foot-tag">A more considered way to care for yourself.</p>
+        </div>
+        <nav aria-label="Footer">
+          <a href="/category/mind" data-link>Mind</a>
+          <a href="/category/body" data-link>Body</a>
+          <a href="/category/nourish" data-link>Nourish</a>
+          <a href="/category/ritual" data-link>Ritual</a>
+          <a href="/journal" data-link>Journal</a>
+          <a href="/about" data-link>About</a>
+          <a href="/practitioners" data-link>Practitioners</a>
+          <a href="/contact" data-link>Contact</a>
+        </nav>
+      </div>
+      <p class="disclaimer">THE WITHIN is a fictional portfolio concept. Content is for general informational purposes and is not medical advice.</p>
+    </div>
+  </footer>
+  <script type="module" src="/js/app.js"></script>
+</body>
+</html>

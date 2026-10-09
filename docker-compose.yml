@@ -4,6 +4,9 @@ services:
   web:
     build: .
     container_name: blog_api
+    env_file:
+      - path: .env
+        required: false
     command: python backend/manage.py runserver 0.0.0.0:8000
     volumes:
       - .:/app

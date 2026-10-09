@@ -1,186 +1,114 @@
-# Blog Application API
+# THE WITHIN
 
-A RESTful Blog Application built using Django REST Framework and PostgreSQL.
+*A more considered way to care for yourself.*
+
+A fictional multidisciplinary wellness practice and editorial journal, built as a portfolio project. It grew out of an existing Django REST blog API: the backend was extended (not replaced) and a new front end was added. **THE WITHIN is a fictional concept. Content is for general information and is not medical advice.**
 
 ## Features
 
-- User Authentication using JWT
-- Create and View Categories
-- Create and View Blog Posts
-- Search Blog Posts by Title
-- Search Categories by Name
-- PostgreSQL Database Integration
-- Swagger API Documentation
-- Docker Support
+- Editorial home page: hero, category entry points, featured story, practice services, statement section, latest stories (from the API), and an interactive "Find your starting point" feature that recommends categories and live stories.
+- The Journal: category filtering, full-text search (title, excerpt, body, category), server-side pagination, featured story, loading / empty / error / out-of-range states. Category pages at `/category/<slug>`.
+- Article pages: long-form reading layout, related stories, likes, reader notes (comments), per-page title / description / Open Graph / Article JSON-LD.
+- Practice, Practitioners (fictional profiles), About and Contact pages. Contact form validates on the client and the server and is stored as `Feedback`.
+- JWT sign-in and registration for readers; likes and notes require sign-in; authors/staff can delete notes.
+- 26 original articles across Mind, Body, Nourish, Ritual, Relationships and Rest, loaded by an idempotent seed command.
+- Accessibility work: skip link, semantic landmarks, labelled forms with `aria-invalid`/`role="alert"`, visible focus, keyboard-operable menu with Escape, `prefers-reduced-motion` support.
 
-## Tech Stack
+## Tech stack
 
-- Python
-- Django
-- Django REST Framework
-- PostgreSQL
-- JWT Authentication
-- Swagger (drf-yasg)
-- Docker
+Django 5.2, Django REST Framework, SimpleJWT, django-cors-headers, PostgreSQL (SQLite supported for quick trials), optional drf-yasg Swagger docs. Front end: dependency-free ES modules, hand-written CSS, no build step.
 
-## Project Structure
+## Architecture
 
-```text
-backend/
-│
-├── blog/
-│   ├── models.py
-│   ├── serializers.py
-│   ├── views.py
-│   ├── urls.py
-│   └── admin.py
-│
-├── config/
-│   ├── settings.py
-│   ├── urls.py
-│   └── wsgi.py
-│
-├── manage.py
-└── requirements.txt
+```
+backend/   Django project (config/) and app (blog/)
+frontend/  Static single-page app: index.html, css/, js/app.js, img/, serve.py
+tools/     make_images.py (regenerates the illustration set)
 ```
 
-## Installation
+The front end calls the API at the URL in `<meta name="api-base">` in `frontend/index.html`. `frontend/serve.py` serves the files with a history-API fallback so URLs like `/journal/<slug>` work on refresh.
 
-### Clone Repository
+## Backend
+
+Existing endpoints are unchanged. New endpoints are additive:
+
+| Method | Endpoint | Notes |
+|---|---|---|
+| GET | `/api/posts/?category=&q=&featured=&page=&page_size=` | Published stories, paginated (default 9, max 30) |
+| POST | `/api/posts/` | Auth required, 201 on success, 400 on invalid |
+| GET/PUT/PATCH/DELETE | `/api/posts/<slug>/` | Writes need author or staff (403 otherwise), delete returns 204 |
+| GET | `/api/posts/<slug>/related/` | Three related stories |
+| POST/DELETE | `/api/posts/<slug>/like/` | Auth required, 201/200 and 204 |
+| GET/POST | `/api/posts/<slug>/comments/` | Read public; posting needs auth, 2–1000 characters |
+| DELETE | `/api/comments/<id>/` | Owner or staff, 403 otherwise |
+| POST | `/api/contact/` | Public, throttled (20/hour) |
+| POST | `/api/auth/register/`, GET `/api/auth/me/` | Registration uses Django's password validators |
+| POST | `/api/token/`, `/api/token/refresh/` | Existing JWT endpoints |
+
+Existing: `/api/categories/`, `/api/categories/search/`, `/api/posts/search/`, `/api/posts/create/`, `/api/all-posts/`, `/swagger/` and `/redoc/` (when drf-yasg is installed).
+
+## Database
+
+PostgreSQL by default. Models: `Category`, `BlogPost`, `Comment`, `Like`, `Feedback`.
+
+Migration notes (important):
+- `0001`–`0003` are untouched.
+- `models.py` previously lacked `Feedback`, `Comment` and `Like` even though migration `0003` created them, so running `makemigrations` would have generated a migration that **deleted** them. They were restored to match history.
+- `0004_editorial_fields` is purely additive: category `slug`/`tagline`/`display_order`; post `excerpt`, `hero_image`, `hero_image_alt`, `reading_time`, `published_at`, `is_featured`.
+
+## Authentication
+
+SimpleJWT bearer tokens. The front end stores access and refresh tokens in `localStorage` and refreshes once on a 401. This is simple and fine for a portfolio; a production site holding sensitive data should prefer httpOnly cookies.
+
+## Content system
+
+Stories live in the database and are editable in Django admin (`/admin/`). `python manage.py seed_within` creates the categories, four fictional editor accounts (unusable passwords) and 26 stories; it never overwrites or deletes existing rows. Body text is plain paragraphs, with `## ` for subheadings. Hero images are paths such as `img/<slug>.svg`.
+
+## Design approach
+
+Ivory, espresso, clay, terracotta, olive and sage. A serif display face (Fraunces) with a clean sans (Inter) for UI, arch-shaped image crops, restrained uppercase labels, flat colour only (no gradients), quiet reveal-on-scroll motion.
+
+**Imagery:** the build environment had no internet access, so the images are original flat-colour illustrations generated by `tools/make_images.py`, not photographs. To use real photography, replace any file in `frontend/img/` (or set `hero_image` to another path) and keep the alt text meaningful. Practitioner portraits are placeholders.
+
+## Setup and running locally
 
 ```bash
-git clone <repository-url>
-cd BLOG_APPLICATION
-```
-
-### Create Virtual Environment
-
-```bash
-python -m venv venv
-```
-
-### Activate Virtual Environment
-
-Windows:
-
-```bash
-venv\Scripts\activate
-```
-
-Mac/Linux:
-
-```bash
-source venv/bin/activate
-```
-
-### Install Dependencies
-
-```bash
+python -m venv venv && source venv/bin/activate     # Windows: venv\Scripts\activate
 pip install -r requirements.txt
-```
-
-## Database Setup
-
-Create a PostgreSQL database named:
-
-```text
-blog_db
-```
-
-Update database credentials in:
-
-```text
-config/settings.py
-```
-
-Run migrations:
-
-```bash
-python manage.py makemigrations
+cp .env.example .env                                  # then edit values
+cd backend
 python manage.py migrate
+python manage.py seed_within
+python manage.py createsuperuser                      # optional, for /admin/
+python manage.py runserver                            # http://127.0.0.1:8000
 ```
+In a second terminal: `python frontend/serve.py` then open http://localhost:5173.
 
-Create superuser:
+Quick trial without PostgreSQL: set `DB_ENGINE=sqlite` in `.env`.
+
+## Environment variables
+
+`DJANGO_SECRET_KEY`, `DJANGO_DEBUG`, `DJANGO_ALLOWED_HOSTS`, `CORS_ALLOWED_ORIGINS`, `DB_ENGINE`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_PORT`. See `.env.example`. `.env` is git-ignored.
+
+## Tests
 
 ```bash
-python manage.py createsuperuser
+cd backend && python manage.py test
 ```
+Ten API tests cover pagination, filtering, search, CRUD status codes (200/201/204/400/401/403/404), likes, comments, contact, registration and legacy endpoints. They were run against SQLite; the front end was exercised in headless Chrome.
 
-## Running the Project
+## Build
 
-```bash
-python manage.py runserver
-```
+There is no front-end build step; the files are served as-is. For production, serve `frontend/` from any static host (with a fallback to `index.html`) and set `api-base` to the deployed API.
 
-Server runs on:
+## Deployment
 
-```text
-http://127.0.0.1:8000/
-```
+Set `DJANGO_DEBUG=False`, a strong `DJANGO_SECRET_KEY`, real `DJANGO_ALLOWED_HOSTS` and `CORS_ALLOWED_ORIGINS`, run `migrate`, use gunicorn behind HTTPS, and host the static front end separately. The included Dockerfile still runs the development server and should be hardened first.
 
-## API Endpoints
+## Known limitations / future improvements
 
-### Authentication
-
-| Method | Endpoint |
-|---------|----------|
-| POST | `/api/token/` |
-| POST | `/api/token/refresh/` |
-
-### Categories
-
-| Method | Endpoint |
-|---------|----------|
-| GET | `/api/categories/` |
-| POST | `/api/categories/` |
-
-Search Category:
-
-```text
-/api/categories/?name=Technology
-```
-
-### Blog Posts
-
-| Method | Endpoint |
-|---------|----------|
-| GET | `/api/posts/` |
-| POST | `/api/posts/` |
-
-Search Posts:
-
-```text
-/api/posts/?search=django
-```
-
-## Swagger Documentation
-
-Swagger UI:
-
-```text
-http://127.0.0.1:8000/swagger/
-```
-
-ReDoc:
-
-```text
-http://127.0.0.1:8000/redoc/
-```
-
-## Docker
-
-Build Image:
-
-```bash
-docker build -t blog-api .
-```
-
-Run Container:
-
-```bash
-docker run -p 8000:8000 blog-api
-```
-
-## Author
-
-Dhvani Vanzwala
+- Replace illustrations with licensed photography and add responsive image sizes.
+- Add a bundler (Vite) if the app grows; add front-end unit tests.
+- Move tokens to httpOnly cookies; add comment moderation queue and email notification for enquiries.
+- Add a sitemap and server-side rendering or prerendering for stronger SEO (the SPA sets meta tags client-side).
+- Run the test suite in CI against PostgreSQL.

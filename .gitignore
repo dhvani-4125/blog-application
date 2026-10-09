@@ -31,6 +31,7 @@ staticfiles/
 # Environment Variables
 .env
 .env.*
+!.env.example
 
 # IDEs
 .vscode/
@@ -86,3 +87,5 @@ dist/
 # =========================
 *.swp
 *.swo
+# Local database file
+backend/blog_db
